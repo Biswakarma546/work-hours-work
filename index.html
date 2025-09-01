@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Hours Tracker</title>
+<style>
+:root {
+  --bg: #0b1220;
+  --card: #111827;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --primary: #38bdf8;
+  --accent: #34d399;
+  --danger: #f87171;
+  --warning: #f59e0b;
+  --hover: rgba(56,189,248,.1);
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+body {
+  font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text);
+}
+header {
+  position: sticky; top:0; background: rgba(15,23,42,0.9); padding:0.5rem; display:flex; justify-content:center; border-bottom:1px solid #333;
+}
+.tabs { display:flex; gap:0.5rem; }
+.tab { padding:0.6rem 1rem; border-radius:12px; cursor:pointer; transition:.2s; background: #1f2937; border:1px solid #333; }
+.tab.active { background: var(--primary); color:#fff; border-color: var(--primary);}
+.tab:hover { transform:scale(1.05); }
+.container { max-width:980px; margin:1rem auto; }
+.row { display:grid; grid-template-columns:1fr; gap:1rem; }
+@media(min-width:800px){ .row-2{ grid-template-columns:1fr 1fr; } }
+.card { background: var(--card); padding:1rem; border-radius:16px; box-shadow:0 5px 20px rgba(0,0,0,0.3); position:relative; }
+.card h2{ margin-bottom:0.5rem; color:#cbd5e1; }
+.big{ font-size:1.8rem; font-weight:bold; }
+.muted{ color:var(--muted); font-size:0.9rem; margin-bottom:0.5rem; }
+.pill{ display:inline-block; padding:0.3rem 0.6rem; border-radius:999px; font-size:0.85rem; }
+.pill.ok{ background: var(--accent); color:#000; }
+.pill.warn{ background: var(--warning); color:#000; }
+.pill.danger{ background: var(--danger); color:#000; }
+.progress{ height:6px; border-radius:4px; background:#333; margin-top:0.5rem; overflow:hidden; }
+.progress-inner{ height:100%; background: var(--accent); width:0%; transition: width .5s; }
+button{ padding:0.6rem; border-radius:12px; border:none; cursor:pointer; transition:.2s; }
+button.primary{ background: var(--primary); color:#fff; }
+button.ghost{ background:transparent; border:1px solid #555; color:#fff; }
+table{ width:100%; border-collapse: collapse; margin-top:0.5rem; }
+th,td{ padding:0.5rem; border-bottom:1px solid #333; }
+tr:hover{ background: var(--hover); }
+input { width: 100%; padding:0.4rem; margin:0.3rem 0; border-radius:8px; border:none; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tabs">
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="add">Add Hours</div>
+    <div class="tab" data-tab="history">History</div>
+    <div class="tab" data-tab="settings">Settings</div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Dashboard -->
+  <section id="dashboard" class="tab-panel">
+    <div class="row row-2">
+      <div class="card">
+        <h2>This Week</h2>
+        <div class="big" id="weekly-hours">0 hrs</div>
+        <div class="muted" id="weekly-earnings">£0.00</div>
+        <div class="progress"><div id="week-progress" class="progress-inner"></div></div>
+        <div style="margin-top:0.5rem;"><span class="pill" id="restriction-pill">Checking restriction…</span></div>
+      </div>
+      <div class="card">
+        <h2>Previous Week</h2>
+        <div class="big" id="previous-week-hours">0 hrs</div>
+        <div class="muted" id="previous-week-earnings">£0.00</div>
+      </div>
+    </div>
+
+    <div class="row row-2" style="margin-top:1rem;">
+      <div class="card">
+        <h2>This Month</h2>
+        <div class="big" id="monthly-hours">0 hrs</div>
+        <div class="muted" id="monthly-earnings">£0.00</div>
+      </div>
+      <div class="card">
+        <h2>Previous Month</h2>
+        <div class="big" id="previous-month-hours">0 hrs</div>
+        <div class="muted" id="previous-month-earnings">£0.00</div>
+      </div>
+    </div>
+
+    <div class="row row-2" style="margin-top:1rem;">
+      <div class="card">
+        <h2>Total (Unpaid)</h2>
+        <div class="big" id="total-hours">0 hrs</div>
+        <div class="muted" id="total-earnings">£0.00</div>
+      </div>
+      <div class="card">
+        <h2>Pending Pay Cut</h2>
+        <div class="big" id="pending-paycut-hours">0 hrs</div>
+        <div class="muted" id="pending-paycut-earnings">£0.00</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <h2>Quick Export</h2>
+      <div class="grid-2">
+        <button id="exportCsv" class="ghost">Export CSV</button>
+        <button id="markAllPaid" class="ghost">Mark All as Paid</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add Hours -->
+  <section id="add" class="tab-panel" style="display:none">
+    <div class="card">
+      <h2>Add Hours</h2>
+      <label>Date</label>
+      <input type="date" id="date">
+      <div class="grid-2">
+        <div>
+          <label>Start</label>
+          <input type="time" id="start">
+        </div>
+        <div>
+          <label>End</label>
+          <input type="time" id="end">
+        </div>
+      </div>
+      <label>Hours</label>
+      <input type="number" id="hours" step="0.01">
+      <label>Pay Cut (optional)</label>
+      <input type="number" id="payCut" step="0.01" value="0">
+      <button id="save" class="primary" style="margin-top:0.8rem;">Save</button>
+    </div>
+  </section>
+
+  <!-- History -->
+  <section id="history" class="tab-panel" style="display:none">
+    <div class="card">
+      <h2>History</h2>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Earnings</th><th>Status</th><th>Pay Cut</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section id="settings" class="tab-panel" style="display:none">
+    <div class="card">
+      <h2>Settings</h2>
+      <label>Hourly Rate (£)</label>
+      <input type="number" id="rate" step="0.01" value="10">
+      <label>Weekly Limit (hrs)</label>
+      <input type="number" id="weeklyLimit" step="0.1" value="40">
+
+      <h2>Term Dates</h2>
+      <div class="grid-2">
+        <input type="date" id="termStart">
+        <input type="date" id="termEnd">
+      </div>
+      <button id="addTerm" class="primary" style="margin-top:0.5rem;">Add Term</button>
+      <ul id="termList" style="margin-top:0.5rem; list-style:none; padding-left:0;"></ul>
+
+      <button id="saveSettings" class="primary" style="margin-top:0.8rem;">Save Settings</button>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
